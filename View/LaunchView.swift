@@ -53,10 +53,9 @@ class LaunchView: UIViewController {
     }
     
     private func navigateToLogin() {
-        let loginVC = LoginView()
-        loginVC.modalTransitionStyle = .crossDissolve
-        loginVC.modalPresentationStyle = .fullScreen
-        self.present(loginVC, animated: true, completion: nil)
+        if let navigationController = self.navigationController {
+            let loginVC = LoginView()
+            navigationController.pushViewController(loginVC, animated: true)
+        }
     }
 }
-

@@ -69,6 +69,7 @@ class LoginView: UIViewController {
         signUpButton.setTitleColor(.systemGray, for: .normal)
         signUpButton.titleLabel?.font = .systemFont(ofSize: 14)
         signUpButton.translatesAutoresizingMaskIntoConstraints = false
+        signUpButton.addTarget(self, action: #selector(signupTapped), for: .touchUpInside)
         view.addSubview(signUpButton)
     }
     
@@ -90,7 +91,7 @@ class LoginView: UIViewController {
         passwordContainer.addSubview(passwordField)
         
         forgotPasswordButton.setTitle("Forgot Password?", for: .normal)
-        forgotPasswordButton.setTitleColor(.systemGray2, for: .normal)
+        forgotPasswordButton.setTitleColor(.systemGray, for: .normal)
         forgotPasswordButton.titleLabel?.font = .systemFont(ofSize: 12)
         forgotPasswordButton.translatesAutoresizingMaskIntoConstraints = false
         passwordContainer.addSubview(forgotPasswordButton)
@@ -180,6 +181,11 @@ class LoginView: UIViewController {
         } else {
             print("Invalid email or password")
         }
+    }
+    
+    @objc private func signupTapped() {
+        let signUpViewController = SignUpView()
+        navigationController?.pushViewController(signUpViewController, animated: true)
     }
     
     @objc private func togglePasswordVisibility() {
