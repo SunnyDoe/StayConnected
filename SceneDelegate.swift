@@ -20,13 +20,22 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         
         
         let window = UIWindow(windowScene: windowScene)
-        let launchViewController = LaunchView()
-        let navigationController = UINavigationController(rootViewController: launchViewController)
-        window.rootViewController = navigationController
         self.window = window
+        let launchViewController = LaunchView()
+        window.rootViewController = launchViewController
         window.makeKeyAndVisible()
-    }
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+                 self.transitionToLoginView()
+               }
+           }
+    
+    func transitionToLoginView() {
+           let loginViewController = LoginView()
+           let navigationController = UINavigationController(rootViewController: loginViewController)
+           
+           window?.rootViewController = navigationController
+       }
+   }
 
-
-}
 

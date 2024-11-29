@@ -66,8 +66,9 @@ class LoginView: UIViewController {
         view.addSubview(loginButton)
         
         signUpButton.setTitle("Sign Up", for: .normal)
-        signUpButton.setTitleColor(.systemGray, for: .normal)
-        signUpButton.titleLabel?.font = .systemFont(ofSize: 14)
+        let customColor = UIColor(red: 94/255.0, green: 99/255.0, blue: 102/255.0, alpha: 1.0)
+        signUpButton.setTitleColor(customColor, for: .normal)
+        signUpButton.titleLabel?.font = .boldSystemFont (ofSize: 14)
         signUpButton.translatesAutoresizingMaskIntoConstraints = false
         signUpButton.addTarget(self, action: #selector(signupTapped), for: .touchUpInside)
         view.addSubview(signUpButton)
