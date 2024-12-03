@@ -20,6 +20,8 @@ class SignUpViewModel {
                password == confirmPassword
     }
     
+    
+    
     func signUp(completion: (Bool, String) -> Void) {
         if isSignUpEnabled {
             completion(true, "Sign up successful!")

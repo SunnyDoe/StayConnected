@@ -7,8 +7,9 @@
 
 import Foundation
 
-struct User {
-    let fullName: String
+struct User: Codable {
     let email: String
     let password: String
+    let confirm_password: String
+    let full_name: String
 }
