@@ -38,30 +38,30 @@ class SignUpView: UIViewController {
         titleLabel.textAlignment = .left
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(titleLabel)
-
+        
         configureTextField(fullNameTextField, placeholder: "Name", tag: 0)
         configureTextField(emailTextField, placeholder: "Username", tag: 1)
         configureTextField(passwordTextField, placeholder: "********", isSecure: true, tag: 2)
         configureTextField(confirmPasswordTextField, placeholder: "********", isSecure: true, tag: 3)
-
+        
         setupLabel(fullNameLabel, text: "Full Name")
         setupLabel(emailLabel, text: "Email")
         setupLabel(passwordLabel, text: "Enter Password")
         setupLabel(confirmPasswordLabel, text: "Confirm Password")
-
+        
         signUpButton.setTitle("Sign Up", for: .normal)
         signUpButton.backgroundColor = UIColor(red: 78.0 / 255.0, green: 83.0 / 255.0, blue: 162.0 / 255.0, alpha: 1.0)
         signUpButton.setTitleColor(.white, for: .normal)
         signUpButton.translatesAutoresizingMaskIntoConstraints = false
         signUpButton.addTarget(self, action: #selector(signUpTapped), for: .touchUpInside)
         view.addSubview(signUpButton)
-
+        
         statusLabel.textColor = .red
         statusLabel.font = UIFont.systemFont(ofSize: 14)
         statusLabel.numberOfLines = 0
         statusLabel.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(statusLabel)
-
+        
         let stackView = UIStackView(arrangedSubviews: [
             fullNameLabel, fullNameTextField,
             emailLabel, emailTextField,
@@ -72,12 +72,12 @@ class SignUpView: UIViewController {
         stackView.spacing = 16
         stackView.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(stackView)
-
+        
         NSLayoutConstraint.activate([
             titleLabel.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 20),
             titleLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             titleLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
-
+            
             stackView.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 40),
             stackView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             stackView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
@@ -86,14 +86,19 @@ class SignUpView: UIViewController {
             signUpButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             signUpButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
             signUpButton.heightAnchor.constraint(equalToConstant: 50),
-
+            
             statusLabel.topAnchor.constraint(equalTo: signUpButton.bottomAnchor, constant: 16),
             statusLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             statusLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
         ])
-
+        
         addLockAndEyeIcons(to: passwordTextField)
         addLockAndEyeIcons(to: confirmPasswordTextField)
+        
+        fullNameTextField.addTarget(self, action: #selector(textFieldDidChange), for: .editingChanged)
+        emailTextField.addTarget(self, action: #selector(textFieldDidChange), for: .editingChanged)
+        passwordTextField.addTarget(self, action: #selector(textFieldDidChange), for: .editingChanged)
+        confirmPasswordTextField.addTarget(self, action: #selector(textFieldDidChange), for: .editingChanged)
     }
     
     private func addLockAndEyeIcons(to textField: UITextField) {
@@ -116,12 +121,12 @@ class SignUpView: UIViewController {
     @objc private func togglePasswordVisibility(_ sender: UIButton) {
         if let textField = sender.superview as? UITextField {
             textField.isSecureTextEntry.toggle()
-
+            
             let eyeImageName = textField.isSecureTextEntry ? "eye.slash.fill" : "eye.fill"
             sender.setImage(UIImage(systemName: eyeImageName), for: .normal)
         }
     }
-
+    
     private func setupLabel(_ label: UILabel, text: String) {
         label.text = text
         label.font = UIFont.systemFont(ofSize: 14)
@@ -138,14 +143,14 @@ class SignUpView: UIViewController {
         textField.tag = tag
         textField.delegate = self
         view.addSubview(textField)
-
+        
         NSLayoutConstraint.activate([
             textField.widthAnchor.constraint(equalToConstant: 327),
             textField.heightAnchor.constraint(equalToConstant: 52)
         ])
     }
-
-
+    
+    
     
     private func updateSignUpButtonState() {
         signUpButton.isEnabled = viewModel.isSignUpEnabled
@@ -153,10 +158,33 @@ class SignUpView: UIViewController {
     }
     
     @objc private func signUpTapped() {
+        statusLabel.text = ""
+        signUpButton.isEnabled = false
+        
         viewModel.signUp { [weak self] success, message in
-            self?.statusLabel.textColor = success ? .green : .red
-            self?.statusLabel.text = message
+            DispatchQueue.main.async {
+                self?.signUpButton.isEnabled = true
+                self?.statusLabel.textColor = success ? .green : .red
+                self?.statusLabel.text = message
+            }
         }
+    }
+    
+
+@objc private func textFieldDidChange(_ textField: UITextField) {
+        switch textField.tag {
+        case 0:
+            viewModel.fullName = textField.text ?? ""
+        case 1:
+            viewModel.email = textField.text ?? ""
+        case 2:
+            viewModel.password = textField.text ?? ""
+        case 3:
+            viewModel.confirmPassword = textField.text ?? ""
+        default:
+            break
+        }
+        updateSignUpButtonState()
     }
 }
 
