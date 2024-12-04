@@ -8,42 +8,58 @@
 import Foundation
 
 class SignUpViewModel {
-    var fullName: String = ""
+    private let networkManager = NetworkManager()
+    var userName: String = ""
     var email: String = ""
     var password: String = ""
     var confirmPassword: String = ""
     
     var isSignUpEnabled: Bool {
-        return !fullName.isEmpty &&
+        return !userName.isEmpty &&
         !email.isEmpty &&
         !password.isEmpty &&
+        isValidEmail(email) &&
         password == confirmPassword
     }
     
-    private let networkManager = NetworkManager()
+    var emailErrorMessage: String? {
+        return isValidEmail(email) ? nil : "Please enter a valid email address."
+    }
     
-    func signUp(completion: @escaping (Bool, String) -> Void) {
-        guard isSignUpEnabled else {
-            completion(false, "Please fill all fields correctly.")
-            return
-        }
-        
-        let request = User(
-            email: email,
-            password: password,
-            confirm_password: confirmPassword,
-            full_name: fullName
-        )
-        
-        networkManager.registerUser(request) { result in
-            DispatchQueue.main.async {
-                switch result {
-                case .success:
-                    completion(true, "Sign up successful!")
-                case .failure(let error):
-                    completion(false, "Failed to sign up: \(error.localizedDescription)")
+    var onStatusUpdate: ((String, Bool) -> Void)?
+    var onCompletion: (() -> Void)?
+    
+    
+    private func isValidEmail(_ email: String) -> Bool {
+        let emailRegex = "^[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$"
+        return NSPredicate(format: "SELF MATCHES %@", emailRegex).evaluate(with: email)
+    }
+    
+    
+    func signUp() {
+            guard isSignUpEnabled else {
+                onStatusUpdate?("Please fill all fields correctly.", false)
+                return
+            }
+            
+        let request = User(email: email, password: password, confirm_password: confirmPassword, username: userName)
+            
+            networkManager.registerUser(request) { [weak self] result in
+                DispatchQueue.main.async {
+                    switch result {
+                    case .success(let response):
+                        self?.storeTokens(tokens: response.tokens)
+                        self?.onStatusUpdate?("Welcome, \(response.user.username)!", true)
+                        self?.onCompletion?()
+                    case .failure(let error):
+                        self?.onStatusUpdate?("Failed to sign up: \(error.localizedDescription)", false)
+                    }
                 }
             }
         }
+        
+        private func storeTokens(tokens: Tokens) {
+            Keychain.shared.save("accessToken", value: tokens.access)
+            Keychain.shared.save("refreshToken", value: tokens.refresh)
+        }
     }
-}

@@ -9,7 +9,7 @@ import UIKit
 
 class SignUpView: UIViewController {
     
-    private let fullNameTextField = UITextField()
+    private let userNameTextField = UITextField()
     private let emailTextField = UITextField()
     private let passwordTextField = UITextField()
     private let confirmPasswordTextField = UITextField()
@@ -18,7 +18,7 @@ class SignUpView: UIViewController {
     
     private let viewModel = SignUpViewModel()
     
-    private let fullNameLabel = UILabel()
+    private let userNameLabel = UILabel()
     private let emailLabel = UILabel()
     private let passwordLabel = UILabel()
     private let confirmPasswordLabel = UILabel()
@@ -39,12 +39,12 @@ class SignUpView: UIViewController {
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(titleLabel)
         
-        configureTextField(fullNameTextField, placeholder: "Name", tag: 0)
-        configureTextField(emailTextField, placeholder: "Username", tag: 1)
+        configureTextField(userNameTextField, placeholder: "Username", tag: 0)
+        configureTextField(emailTextField, placeholder: "Email", tag: 1)
         configureTextField(passwordTextField, placeholder: "********", isSecure: true, tag: 2)
         configureTextField(confirmPasswordTextField, placeholder: "********", isSecure: true, tag: 3)
         
-        setupLabel(fullNameLabel, text: "Full Name")
+        setupLabel(userNameLabel, text: "Username")
         setupLabel(emailLabel, text: "Email")
         setupLabel(passwordLabel, text: "Enter Password")
         setupLabel(confirmPasswordLabel, text: "Confirm Password")
@@ -63,7 +63,7 @@ class SignUpView: UIViewController {
         view.addSubview(statusLabel)
         
         let stackView = UIStackView(arrangedSubviews: [
-            fullNameLabel, fullNameTextField,
+            userNameLabel, userNameTextField,
             emailLabel, emailTextField,
             passwordLabel, passwordTextField,
             confirmPasswordLabel, confirmPasswordTextField
@@ -95,7 +95,7 @@ class SignUpView: UIViewController {
         addLockAndEyeIcons(to: passwordTextField)
         addLockAndEyeIcons(to: confirmPasswordTextField)
         
-        fullNameTextField.addTarget(self, action: #selector(textFieldDidChange), for: .editingChanged)
+        userNameTextField.addTarget(self, action: #selector(textFieldDidChange), for: .editingChanged)
         emailTextField.addTarget(self, action: #selector(textFieldDidChange), for: .editingChanged)
         passwordTextField.addTarget(self, action: #selector(textFieldDidChange), for: .editingChanged)
         confirmPasswordTextField.addTarget(self, action: #selector(textFieldDidChange), for: .editingChanged)
@@ -153,28 +153,44 @@ class SignUpView: UIViewController {
     
     
     private func updateSignUpButtonState() {
-        signUpButton.isEnabled = viewModel.isSignUpEnabled
-        signUpButton.alpha = viewModel.isSignUpEnabled ? 1.0 : 0.5
+        let isFormValid = viewModel.isSignUpEnabled
+        signUpButton.isEnabled = isFormValid
+        signUpButton.alpha = isFormValid ? 1.0 : 0.5
+
+        if let emailError = viewModel.emailErrorMessage {
+            statusLabel.textColor = .red
+            statusLabel.text = emailError
+        } else {
+            statusLabel.text = ""
+        }
     }
     
     @objc private func signUpTapped() {
         statusLabel.text = ""
         signUpButton.isEnabled = false
-        
-        viewModel.signUp { [weak self] success, message in
+
+        viewModel.onStatusUpdate = { [weak self] message, success in
             DispatchQueue.main.async {
-                self?.signUpButton.isEnabled = true
-                self?.statusLabel.textColor = success ? .green : .red
                 self?.statusLabel.text = message
+                self?.statusLabel.textColor = success ? .green : .red
+                self?.signUpButton.isEnabled = !success
             }
         }
+
+        viewModel.onCompletion = { [weak self] in
+            DispatchQueue.main.async {
+                print("Sign-up completed successfully")
+            }
+        }
+
+        viewModel.signUp()
     }
-    
+
 
 @objc private func textFieldDidChange(_ textField: UITextField) {
         switch textField.tag {
         case 0:
-            viewModel.fullName = textField.text ?? ""
+            viewModel.userName = textField.text ?? ""
         case 1:
             viewModel.email = textField.text ?? ""
         case 2:
@@ -192,7 +208,7 @@ extension SignUpView: UITextFieldDelegate {
     func textFieldDidEndEditing(_ textField: UITextField) {
         switch textField.tag {
         case 0:
-            viewModel.fullName = textField.text ?? ""
+            viewModel.userName = textField.text ?? ""
         case 1:
             viewModel.email = textField.text ?? ""
         case 2:

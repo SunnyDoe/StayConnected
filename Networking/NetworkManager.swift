@@ -8,31 +8,38 @@
 import Foundation
 
 class NetworkManager {
-    private let registrationURL = "https://nunu29.pythonanywhere.com/users/register/"
-    
-    func registerUser(_ request: User, completion: @escaping (Result<Data, Error>) -> Void) {
-        guard let url = URL(string: registrationURL) else { return }
-        
-        var urlRequest = URLRequest(url: url)
-        urlRequest.httpMethod = "POST"
-        urlRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        
+    func registerUser(_ user: User, completion: @escaping (Result<SignUpResponse, Error>) -> Void) {
+        guard let url = URL(string: "https://nunu29.pythonanywhere.com/users/register/") else { return }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
         do {
-            let jsonData = try JSONEncoder().encode(request)
-            urlRequest.httpBody = jsonData
+            let requestBody = try JSONEncoder().encode(user)
+            request.httpBody = requestBody
         } catch {
             completion(.failure(error))
             return
         }
-        
-        let task = URLSession.shared.dataTask(with: urlRequest) { data, response, error in
+
+        URLSession.shared.dataTask(with: request) { data, response, error in
             if let error = error {
                 completion(.failure(error))
-            } else if let data = data {
-                completion(.success(data))
+                return
             }
-        }
-        
-        task.resume()
+
+            guard let data = data else {
+                completion(.failure(NSError(domain: "", code: -1, userInfo: [NSLocalizedDescriptionKey: "No data received"])))
+                return
+            }
+
+            do {
+                let signUpResponse = try JSONDecoder().decode(SignUpResponse.self, from: data)
+                completion(.success(signUpResponse))
+            } catch {
+                completion(.failure(error))
+            }
+        }.resume()
     }
 }
