@@ -30,7 +30,7 @@ struct Tokens: Codable {
     let access: String
 }
 
-struct AuthModel {
+struct AuthModel: Codable {
     var email: String
     var password: String
 }

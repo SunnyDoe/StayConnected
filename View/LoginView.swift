@@ -177,11 +177,8 @@ class LoginView: UIViewController {
     }
     
     @objc private func loginTapped() {
-        if viewModel.isValidEmail() && viewModel.isPasswordValid() {
-            print("Login Successful")
-        } else {
-            print("Invalid email or password")
-        }
+        print("Login button tapped")
+        viewModel.signIn()
     }
     
     @objc private func signupTapped() {
