@@ -24,7 +24,6 @@ class LoginViewModel {
         
         let authModel = AuthModel(email: email, password: password)
         
-        let networkManager = NetworkManager()
         networkManager.loginUser(authModel) { [weak self] result in
             DispatchQueue.main.async {
                 switch result {
@@ -36,6 +35,11 @@ class LoginViewModel {
                 }
             }
         }
+    }
+    
+    private func storeTokens(tokens: Tokens) {
+        Keychain.shared.save("accessToken", value: tokens.access)
+        Keychain.shared.save("refreshToken", value: tokens.refresh)
     }
     
     func isValidEmail() -> Bool {

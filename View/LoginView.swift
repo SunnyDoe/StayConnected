@@ -34,6 +34,25 @@ class LoginView: UIViewController {
         setupLogin()
         setupPassword()
         setupConstraints()
+        bindViewModel()
+    }
+    
+    private func bindViewModel() {
+        viewModel.onStatusUpdate = { [weak self] message, isSuccess in
+            print(message)
+            
+            let alert = UIAlertController(title: isSuccess ? "Success" : "Error",
+                                           message: message,
+                                           preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "OK", style: .default))
+            self?.present(alert, animated: true)
+        }
+        
+        viewModel.onCompletion = { [weak self] in
+            print("Login successful, navigating to home.")
+            let homeViewController = SignUpView()
+            self?.navigationController?.pushViewController(homeViewController, animated: true)
+        }
     }
     
     private func setupLogin() {

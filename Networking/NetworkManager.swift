@@ -46,21 +46,21 @@ class NetworkManager {
     
     
     func loginUser(_ authModel: AuthModel, completion: @escaping (Result<SignUpResponse, Error>) -> Void) {
-        let url = URL(string: "https://nunu29.pythonanywhere.com/users/login/")!
+        guard let url = URL(string: "https://nunu29.pythonanywhere.com/users/login/") else { return }
+        
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         
         do {
-            let jsonData = try JSONEncoder().encode(authModel)
-            request.httpBody = jsonData
+            let requestBody = try JSONEncoder().encode(authModel)
+            request.httpBody = requestBody
         } catch {
             completion(.failure(error))
             return
         }
         
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        
-        let task = URLSession.shared.dataTask(with: request) { data, response, error in
+        URLSession.shared.dataTask(with: request) { data, response, error in
             if let error = error {
                 completion(.failure(error))
                 return
@@ -77,8 +77,6 @@ class NetworkManager {
             } catch {
                 completion(.failure(error))
             }
-        }
-        
-        task.resume()
+        }.resume()
     }
 }
