@@ -1,99 +1,94 @@
-//
-//  HomePageViewController.swift
-//  combineTest
-//
-//  Created by Imac on 29.11.24.
-//
-
 import UIKit
-import SwiftUI
+import Combine
 
 class HomePageViewController: UIViewController {
-
-    let questionLbl: UILabel = {
+    private let questionLbl: UILabel = {
         let label = UILabel()
         label.text = "Questions"
         label.font = UIFont.boldSystemFont(ofSize: 20)
         label.translatesAutoresizingMaskIntoConstraints = false
-        
         return label
     }()
     
-    let addButton: UIButton = {
+    private let addButton: UIButton = {
         let button = UIButton()
         button.setImage(UIImage(named: "addButton"), for: .normal)
         button.translatesAutoresizingMaskIntoConstraints = false
-        
         return button
     }()
     
-    let buttonStackView: UIStackView = {
+    private let buttonStackView: UIStackView = {
         let stackView = UIStackView()
         stackView.axis = .horizontal
         stackView.spacing = 20
         stackView.translatesAutoresizingMaskIntoConstraints = false
         stackView.distribution = .fillEqually
-        
         return stackView
     }()
     
-    let generalButton: UIButton = {
+    private let generalButton: UIButton = {
         let button = UIButton()
         button.setTitle("General", for: .normal)
-        button.backgroundColor = UIColor(red: 78/255, green: 83/255, blue: 162/255, alpha: 1.0) // default ად უნდა მქონდეს ეს ფერი და რომ დავაჭერ personal შეცვალოს ფერები
         button.translatesAutoresizingMaskIntoConstraints = false
         button.layer.cornerRadius = 15
         button.clipsToBounds = true
         return button
     }()
     
-    let personalButton: UIButton = {
+    private let personalButton: UIButton = {
         let button = UIButton()
         button.setTitle("Personal", for: .normal)
-        button.backgroundColor = UIColor(red: 119/255, green: 126/255, blue: 153/255, alpha: 1.0)
         button.translatesAutoresizingMaskIntoConstraints = false
         button.layer.cornerRadius = 15
         button.clipsToBounds = true
         return button
     }()
     
-    let noQuestionsLbl: UILabel = {
+    private let noQuestionsLbl: UILabel = {
         let label = UILabel()
-        label.text = "No questions yet"
-        label.font = UIFont(name: "", size: 15)
+        label.font = UIFont.systemFont(ofSize: 15)
         label.textColor = .gray
         label.translatesAutoresizingMaskIntoConstraints = false
-        
         return label
     }()
     
-    let firstToAskLbl: UILabel = {
+    private let firstToAskLbl: UILabel = {
         let label = UILabel()
-        label.text = "Be the first to ask one"
-        label.font = UIFont(name: "", size: 15)
+        label.font = UIFont.systemFont(ofSize: 15)
         label.textColor = .black
         label.translatesAutoresizingMaskIntoConstraints = false
-        
         return label
     }()
     
-    let ifEmptyImage: UIImageView = {
+    private let ifEmptyImage: UIImageView = {
         let image = UIImageView(image: UIImage(named: "IfEmpty"))
         image.translatesAutoresizingMaskIntoConstraints = false
         return image
     }()
     
+    private let viewModel: HomePageViewModel
+    private var cancellables = Set<AnyCancellable>()
+    
+    init(viewModel: HomePageViewModel = HomePageViewModel()) {
+        self.viewModel = viewModel
+        super.init(nibName: nil, bundle: nil)
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
     
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .white
-        setupUi()
+        setupUI()
         setupButtonActions()
-        updateButtonStyles(activeButton: generalButton)
-
+        bindViewModel()
         
+        updateButtonStyles(activeButton: generalButton)
     }
-    private func setupUi() {
+    
+    private func setupUI() {
         view.addSubview(questionLbl)
         view.addSubview(addButton)
         view.addSubview(buttonStackView)
@@ -101,10 +96,8 @@ class HomePageViewController: UIViewController {
         view.addSubview(firstToAskLbl)
         view.addSubview(ifEmptyImage)
 
-
         buttonStackView.addArrangedSubview(generalButton)
         buttonStackView.addArrangedSubview(personalButton)
-
 
         NSLayoutConstraint.activate([
             questionLbl.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 10),
@@ -126,44 +119,58 @@ class HomePageViewController: UIViewController {
 
             ifEmptyImage.topAnchor.constraint(equalTo: firstToAskLbl.bottomAnchor, constant: 19),
             ifEmptyImage.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-
         ])
     }
-    
     
     private func setupButtonActions() {
         generalButton.addTarget(self, action: #selector(generalButtonTapped), for: .touchUpInside)
         personalButton.addTarget(self, action: #selector(personalButtonTapped), for: .touchUpInside)
     }
-
+    
     @objc private func generalButtonTapped() {
-        updateButtonStyles(activeButton: generalButton)
-        showGeneralContent()
+        viewModel.switchQuestionType(to: .general)
     }
 
     @objc private func personalButtonTapped() {
-        updateButtonStyles(activeButton: personalButton)
-        showPersonalContent()
+        viewModel.switchQuestionType(to: .personal)
     }
-
-    private func updateButtonStyles(activeButton: UIButton) {
-        generalButton.backgroundColor = activeButton == generalButton
-            ? UIColor(red: 78/255, green: 83/255, blue: 162/255, alpha: 1.0)
-            : UIColor(red: 119/255, green: 126/255, blue: 153/255, alpha: 1.0)
+    
+    private func bindViewModel() {
+        viewModel.$currentQuestionType
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] questionType in
+                guard let self = self else { return }
+                
+                let activeButton = questionType == .general ? self.generalButton : self.personalButton
+                self.updateButtonStyles(activeButton: activeButton)
+                
+                switch questionType {
+                case .general:
+                    self.noQuestionsLbl.text = "No questions yet"
+                    self.firstToAskLbl.text = "Be the first to ask one"
+                case .personal:
+                    self.noQuestionsLbl.text = "Got a question in mind?"
+                    self.firstToAskLbl.text = "Ask it and wait for like-minded people to answer"
+                }
+            }
+            .store(in: &cancellables)
         
-        personalButton.backgroundColor = activeButton == personalButton
-            ? UIColor(red: 78/255, green: 83/255, blue: 162/255, alpha: 1.0)
-            : UIColor(red: 119/255, green: 126/255, blue: 153/255, alpha: 1.0)
+        viewModel.$isQuestionsEmpty
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] isEmpty in
+                self?.noQuestionsLbl.isHidden = !isEmpty
+                self?.firstToAskLbl.isHidden = !isEmpty
+                self?.ifEmptyImage.isHidden = !isEmpty
+            }
+            .store(in: &cancellables)
     }
-
-    private func showGeneralContent() {
-        noQuestionsLbl.text = "No questions yet"
-        firstToAskLbl.text = "Be the first to ask one "
+    
+    // MARK: - Helper Methods
+    private func updateButtonStyles(activeButton: UIButton) {
+        let activeColor = UIColor(red: 78/255, green: 83/255, blue: 162/255, alpha: 1.0)
+        let inactiveColor = UIColor(red: 119/255, green: 126/255, blue: 153/255, alpha: 1.0)
+        
+        generalButton.backgroundColor = activeButton == generalButton ? activeColor : inactiveColor
+        personalButton.backgroundColor = activeButton == personalButton ? activeColor : inactiveColor
     }
-
-    private func showPersonalContent() {
-        noQuestionsLbl.text = "Got a question in mind?"
-        firstToAskLbl.text = "Ask it and wait for like-minded people  to answer"
-    }
-
 }
