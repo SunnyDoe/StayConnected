@@ -7,7 +7,7 @@
 
 import Foundation
 
-class AuthViewModel {
+class LoginViewModel {
     private let networkManager = NetworkManager()
     
     var email: String = ""

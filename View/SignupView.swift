@@ -179,7 +179,9 @@ class SignUpView: UIViewController {
 
         viewModel.onCompletion = { [weak self] in
             DispatchQueue.main.async {
-                print("Sign-up completed successfully")
+                let loginViewController = LoginView()
+                loginViewController.modalPresentationStyle = .fullScreen
+                self?.present(loginViewController, animated: true, completion: nil)
             }
         }
 

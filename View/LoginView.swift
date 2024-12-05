@@ -9,7 +9,7 @@ import UIKit
 
 class LoginView: UIViewController {
     
-    private let viewModel = AuthViewModel()
+    private let viewModel = LoginViewModel()
     
     private let emailField = UITextField()
     private let passwordField = UITextField()
