@@ -47,7 +47,7 @@ class LoginViewModel {
     }
     
     func isPasswordValid() -> Bool {
-        return password.count >= 6
+        return password.count <= 50
     }
 }
 
