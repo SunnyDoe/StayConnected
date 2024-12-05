@@ -122,9 +122,28 @@ class HomePageViewController: UIViewController {
         ])
     }
     
+    @objc private func addButtonTapped() {
+        let addQuestionVC = AddQuestionViewController()
+        
+        if let sheet = addQuestionVC.sheetPresentationController {
+            sheet.detents = [.large()]
+            sheet.prefersGrabberVisible = true 
+            sheet.prefersEdgeAttachedInCompactHeight = true
+        }
+
+        present(addQuestionVC, animated: true, completion: nil)
+    }
+
+
+
+
+    
     private func setupButtonActions() {
         generalButton.addTarget(self, action: #selector(generalButtonTapped), for: .touchUpInside)
         personalButton.addTarget(self, action: #selector(personalButtonTapped), for: .touchUpInside)
+        
+        addButton.addTarget(self, action: #selector(addButtonTapped), for: .touchUpInside)
+
     }
     
     @objc private func generalButtonTapped() {

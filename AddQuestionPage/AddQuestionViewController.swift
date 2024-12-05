@@ -43,12 +43,6 @@ class AddQuestionViewController: UIViewController, UICollectionViewDelegate, UIC
         return textField
     }()
     
-
-
-    
-
-
-    
     private let questionTextField: UITextField = {
         let textField = UITextField()
         textField.placeholder = "Type your question here"
@@ -117,6 +111,21 @@ class AddQuestionViewController: UIViewController, UICollectionViewDelegate, UIC
         return collectionView
     }()
     
+    private let selectedTagsContainerView: UIView = {
+        let view = UIView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        return view
+    }()
+
+    private let selectedTagsLabel: UILabel = {
+        let label = UILabel()
+        label.text = "Tags:"
+        label.textColor = UIColor(red: 144/255, green: 144/255, blue: 147/255, alpha: 1.0)
+        label.font = .systemFont(ofSize: 15, weight: .medium)
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
+    }()
+    
     private lazy var selectedTagsCollectionView: UICollectionView = {
         let layout = UICollectionViewFlowLayout()
         layout.minimumInteritemSpacing = 8
@@ -132,11 +141,14 @@ class AddQuestionViewController: UIViewController, UICollectionViewDelegate, UIC
         collectionView.backgroundColor = .clear
         return collectionView
     }()
+    
 
 
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
+        cancelButton.addTarget(self, action: #selector(cancelButtonTapped), for: .touchUpInside)
+
     }
     
     private func setupUI() {
@@ -146,13 +158,22 @@ class AddQuestionViewController: UIViewController, UICollectionViewDelegate, UIC
         view.addSubview(titleLabel)
         view.addSubview(cancelButton)
         view.addSubview(subjectView)
+        view.addSubview(selectedTagsLabel)
+        view.addSubview(selectedTagsContainerView)
+        view.addSubview(tagBottomBorder)
+        
+        selectedTagsContainerView.addSubview(selectedTagsLabel)
+        selectedTagsContainerView.addSubview(selectedTagsCollectionView)
+
         subjectView.addSubview(subjectStackView)
         subjectView.addSubview(subjectBorderBottom)
         subjectStackView.addArrangedSubview(subjectLabel)
         subjectStackView.addArrangedSubview(subjectTextField)
+        
         view.addSubview(questionTextField)
         view.addSubview(sendButton)
         view.addSubview(collectionView)
+        
         
         subjectLabel.setContentHuggingPriority(.defaultHigh, for: .horizontal)
         subjectLabel.setContentCompressionResistancePriority(.required, for: .horizontal)
@@ -187,10 +208,27 @@ class AddQuestionViewController: UIViewController, UICollectionViewDelegate, UIC
             collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
             collectionView.heightAnchor.constraint(equalToConstant: 100),
             
-            selectedTagsCollectionView.topAnchor.constraint(equalTo: subjectView.bottomAnchor, constant: 16),
-            selectedTagsCollectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
-            selectedTagsCollectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
-            selectedTagsCollectionView.heightAnchor.constraint(equalToConstant: 50),
+            
+            
+            tagBottomBorder.leadingAnchor.constraint(equalTo: subjectView.leadingAnchor),
+            tagBottomBorder.trailingAnchor.constraint(equalTo: subjectView.trailingAnchor),
+            tagBottomBorder.topAnchor.constraint(equalTo: selectedTagsContainerView.bottomAnchor),
+            tagBottomBorder.heightAnchor.constraint(equalToConstant: 1),
+
+            
+            selectedTagsContainerView.topAnchor.constraint(equalTo: subjectView.bottomAnchor, constant: 16),
+            selectedTagsContainerView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+            selectedTagsContainerView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+            selectedTagsContainerView.heightAnchor.constraint(equalToConstant: 50),
+            
+            selectedTagsLabel.centerYAnchor.constraint(equalTo: selectedTagsContainerView.centerYAnchor),
+            selectedTagsLabel.leadingAnchor.constraint(equalTo: selectedTagsContainerView.leadingAnchor),
+            
+            selectedTagsCollectionView.centerYAnchor.constraint(equalTo: selectedTagsContainerView.centerYAnchor),
+            selectedTagsCollectionView.leadingAnchor.constraint(equalTo: selectedTagsLabel.trailingAnchor, constant: 8),
+            selectedTagsCollectionView.trailingAnchor.constraint(equalTo: selectedTagsContainerView.trailingAnchor),
+            
+            collectionView.topAnchor.constraint(equalTo: tagBottomBorder.bottomAnchor, constant: 16),
 
             questionTextField.topAnchor.constraint(equalTo: collectionView.bottomAnchor, constant: 16),
             questionTextField.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
@@ -203,6 +241,10 @@ class AddQuestionViewController: UIViewController, UICollectionViewDelegate, UIC
             sendButton.heightAnchor.constraint(equalToConstant: 44)
         ])
     }
+    @objc private func cancelButtonTapped() {
+        dismiss(animated: true, completion: nil)
+    }
+
 }
 
 extension AddQuestionViewController {
@@ -230,10 +272,13 @@ extension AddQuestionViewController {
     @objc private func tagButtonTapped(_ sender: UIButton) {
         guard let tagText = sender.titleLabel?.text else { return }
         
-        if !selectedTags.contains(tagText) {
+        if let index = selectedTags.firstIndex(of: tagText) {
+            selectedTags.remove(at: index)
+        } else {
             selectedTags.append(tagText)
-            selectedTagsCollectionView.reloadData()
         }
+        
+        selectedTagsCollectionView.reloadData()
     }
 
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
@@ -252,4 +297,3 @@ extension AddQuestionViewController {
         }
     }
 }
-
