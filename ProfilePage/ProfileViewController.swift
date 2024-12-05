@@ -120,7 +120,7 @@ class ProfileViewController: UIViewController {
     private let infoTitle: UILabel = {
         let label = UILabel()
         label.text = "INFORMATION"
-        label.font = .systemFont(ofSize: 18, weight: .medium)
+        label.font = .systemFont(ofSize: 13, weight: .medium)
         label.textColor = UIColor(red: 94/255, green: 99/255, blue: 102/255, alpha: 1.0)
         label.translatesAutoresizingMaskIntoConstraints = false
         
@@ -172,11 +172,11 @@ class ProfileViewController: UIViewController {
             logoutButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -16),
             logoutButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             
-            scoreStackView.topAnchor.constraint(equalTo: emailLabel.bottomAnchor, constant: 16),
+            scoreStackView.topAnchor.constraint(equalTo: infoTitle.bottomAnchor, constant: 29),
             scoreStackView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             scoreStackView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
             
-            answeredQuestionsStackView.topAnchor.constraint(equalTo: scoreStackView.bottomAnchor, constant: 8),
+            answeredQuestionsStackView.topAnchor.constraint(equalTo: scoreStackView.bottomAnchor, constant: 29),
             answeredQuestionsStackView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             answeredQuestionsStackView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16)
         ])
