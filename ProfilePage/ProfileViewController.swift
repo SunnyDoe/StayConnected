@@ -20,11 +20,13 @@ class ProfileViewController: UIViewController {
 
     private let profileImageView: UIImageView = {
         let imageView = UIImageView()
+        imageView.image = UIImage(named: "profileImg") 
         imageView.contentMode = .scaleAspectFit
         imageView.clipsToBounds = true
         imageView.translatesAutoresizingMaskIntoConstraints = false
         return imageView
     }()
+
     
     private let nameLabel: UILabel = {
         let label = UILabel()

@@ -63,7 +63,7 @@ class AddQuestionViewController: UIViewController, UICollectionViewDelegate, UIC
     
     private let sendButton: UIButton = {
         let button = UIButton(type: .system)
-        button.setImage(UIImage(named: "SendIcon"), for: .normal)
+        button.setImage(UIImage(named: "SendButton"), for: .normal)
         button.tintColor =  UIColor(red: 218/255, green: 218/255, blue: 218/255, alpha: 1.0)
         button.translatesAutoresizingMaskIntoConstraints = false
         
@@ -236,11 +236,7 @@ class AddQuestionViewController: UIViewController, UICollectionViewDelegate, UIC
             questionTextField.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             questionTextField.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
             questionTextField.heightAnchor.constraint(equalToConstant: 50),
-            
-            sendButton.centerYAnchor.constraint(equalTo: questionTextField.centerYAnchor),
-            sendButton.trailingAnchor.constraint(equalTo: questionTextField.trailingAnchor, constant: -16),
-            sendButton.widthAnchor.constraint(equalToConstant: 44),
-            sendButton.heightAnchor.constraint(equalToConstant: 44)
+
         ])
     }
     @objc private func cancelButtonTapped() {
@@ -251,14 +247,19 @@ class AddQuestionViewController: UIViewController, UICollectionViewDelegate, UIC
     
     private func setupAddQuestionButton() {
         let addButton = UIButton(type: .system)
-        addButton.setImage(UIImage(systemName: "paperplane"), for: .normal)
+        addButton.setImage(UIImage(named: "SendButton"), for: .normal)
         addButton.tintColor = UIColor(red: 144/255, green: 144/255, blue: 147/255, alpha: 1.0)
         addButton.frame = CGRect(x: 0, y: 0, width: 44, height: 44)
         addButton.addTarget(self, action: #selector(addQuestionTapped), for: .touchUpInside)
-        
-        questionTextField.rightView = addButton
+
+        let rightView = UIView(frame: CGRect(x: 0, y: 0, width: 60, height: 44))
+        rightView.addSubview(addButton)
+        addButton.center = CGPoint(x: rightView.bounds.midX, y: rightView.bounds.midY)
+
+        questionTextField.rightView = rightView
         questionTextField.rightViewMode = .always
     }
+
     
     @objc private func addQuestionTapped() {
         guard let title = subjectTextField.text, !title.isEmpty,

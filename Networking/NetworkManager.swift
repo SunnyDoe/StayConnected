@@ -6,8 +6,29 @@
 //
 
 import Foundation
+import Combine
+enum NetworkError: Error {
+    case invalidURL
+    case requestFailed(statusCode: Int)
+    case decodingError
+    case unknownError
+    
+    var localizedDescription: String {
+        switch self {
+        case .invalidURL:
+            return "Invalid URL"
+        case .requestFailed(let statusCode):
+            return "Request failed with status code: \(statusCode)"
+        case .decodingError:
+            return "Unable to decode the response"
+        case .unknownError:
+            return "An unknown error occurred"
+        }
+    }
+}
 
 class NetworkManager {
+    private let baseURL = URL(string: "https://nunu29.pythonanywhere.com/questions/questions_answers_create/")!
     
     func registerUser(_ user: User, completion: @escaping (Result<SignUpResponse, Error>) -> Void) {
         guard let url = URL(string: "https://nunu29.pythonanywhere.com/users/register/") else { return }
@@ -100,7 +121,7 @@ class NetworkManager {
                 completion(.failure(NSError(domain: "DataError", code: 0, userInfo: nil)))
                 return
             }
-
+            
             if let responseString = String(data: data, encoding: .utf8) {
                 print("Raw response data: \(responseString)")
             }
@@ -108,10 +129,45 @@ class NetworkManager {
             completion(.success(data))
         }.resume()
     }
+    
+    func sendQuestion(_ questionText: String, completion: @escaping (Result<Void, Error>) -> Void) {
+        guard let url = URL(string: "https://nunu29.pythonanywhere.com/questions/questions_answers_create/") else {
+            completion(.failure(NetworkError.invalidURL))
+            return
+        }
 
-    func addQuestion(_ question: Question, completion: @escaping (Result<Question, Error>) -> Void) {
-        guard let url = URL(string: "https://nunu29.pythonanywhere.com/questions/questions_create/") else {
-            completion(.failure(NSError(domain: "Invalid URL", code: 0, userInfo: nil)))
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        let parameters: [String: String] = ["body": questionText]
+
+        do {
+            let jsonData = try JSONSerialization.data(withJSONObject: parameters, options: [])
+            request.httpBody = jsonData
+        } catch {
+            completion(.failure(error))
+            return
+        }
+
+        URLSession.shared.dataTask(with: request) { _, response, error in
+            if let error = error {
+                completion(.failure(error))
+                return
+            }
+
+            guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 201 else {
+                completion(.failure(NetworkError.requestFailed(statusCode: (response as? HTTPURLResponse)?.statusCode ?? -1)))
+                return
+            }
+
+            completion(.success(()))
+        }.resume()
+    }
+
+    func sendQuestion(questionText: String, completion: @escaping (Result<Void, Error>) -> Void) {
+        guard let url = URL(string: "https://nunu29.pythonanywhere.com/questions/questions_answers_create/") else {
+            completion(.failure(NetworkError.invalidURL))
             return
         }
         
@@ -119,13 +175,34 @@ class NetworkManager {
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         
+        let parameters: [String: Any] = ["body": questionText]
+        
         do {
-            let requestBody = try JSONEncoder().encode(question)
-            request.httpBody = requestBody
+            let jsonData = try JSONSerialization.data(withJSONObject: parameters, options: [])
+            request.httpBody = jsonData
         } catch {
             completion(.failure(error))
             return
         }
+        
+        URLSession.shared.dataTask(with: request) { _, response, error in
+            if let error = error {
+                completion(.failure(error))
+                return
+            }
+            completion(.success(()))
+        }.resume()
+    }
+
+    func fetchAnswer(completion: @escaping (Result<String, Error>) -> Void) {
+        guard let url = URL(string: "https://nunu29.pythonanywhere.com/questions/questions_retrieve/") else {
+            completion(.failure(NetworkError.invalidURL))
+            return
+        }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         
         URLSession.shared.dataTask(with: request) { data, response, error in
             if let error = error {
@@ -134,18 +211,21 @@ class NetworkManager {
             }
             
             guard let data = data else {
-                completion(.failure(NSError(domain: "DataError", code: 0, userInfo: nil)))
+                completion(.failure(NetworkError.unknownError))
                 return
             }
             
             do {
-                let createdQuestion = try JSONDecoder().decode(Question.self, from: data)
-                completion(.success(createdQuestion))
+                let responseDict = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any]
+                if let answer = responseDict?["answer"] as? String {
+                    completion(.success(answer))
+                } else {
+                    completion(.failure(NetworkError.decodingError))
+                }
             } catch {
                 completion(.failure(error))
             }
         }.resume()
     }
-
 
 }
