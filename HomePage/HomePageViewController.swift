@@ -84,8 +84,7 @@ class HomePageViewController: UIViewController {
         view.backgroundColor = .white
         setupUI()
         tableView.separatorStyle = .none
-        tableView.rowHeight = UITableView.automaticDimension
-        tableView.estimatedRowHeight = 44 
+        
         
         setupButtonActions()
         bindViewModel()
@@ -266,4 +265,16 @@ extension HomePageViewController: UITableViewDataSource, UITableViewDelegate {
         return cell
     }
 }
+    
+    // MARK: ირა ეს შენთვისაა ამას ამოაკომენტებ და deatilsVC გაუწერ შენი მხარე რაცაა და რომ დააწვება გადმოვა ტიპი შენ ფეიჯზე
+//    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+//        let selectedQuestion = viewModel.questions[indexPath.row]
+//
+//        let detailsVC = QuestionDetailsViewController()
+//        detailsVC.question = selectedQuestion
+//
+//        navigationController?.pushViewController(detailsVC, animated: true)
+//
+//        tableView.deselectRow(at: indexPath, animated: true)
+
 
