@@ -1,10 +1,11 @@
 import UIKit
 
 class AddQuestionViewController: UIViewController, UICollectionViewDelegate, UICollectionViewDataSource {
-
+    
     private var tags: [String] = ["Frontend", "iOS", "SwiftUI", "SwiftUI", "iOS","Frontend", "iOS", "SwiftUI", "SwiftUI", "iOS"]
     private var selectedTags: [String] = []
-
+    weak var delegate: AddQuestionDelegate?
+    
     private let titleLabel: UILabel = {
         let label = UILabel()
         label.text = "Add Question"
@@ -58,24 +59,24 @@ class AddQuestionViewController: UIViewController, UICollectionViewDelegate, UIC
         
         return textField
     }()
-
+    
     
     private let sendButton: UIButton = {
         let button = UIButton(type: .system)
         button.setImage(UIImage(named: "SendIcon"), for: .normal)
         button.tintColor =  UIColor(red: 218/255, green: 218/255, blue: 218/255, alpha: 1.0)
         button.translatesAutoresizingMaskIntoConstraints = false
-
+        
         return button
     }()
-
+    
     private let subjectStackView: UIStackView = {
         let stackView = UIStackView()
         stackView.axis = .horizontal
         stackView.spacing = 8
         stackView.alignment = .center
         stackView.translatesAutoresizingMaskIntoConstraints = false
-
+        
         return stackView
     }()
     
@@ -116,7 +117,7 @@ class AddQuestionViewController: UIViewController, UICollectionViewDelegate, UIC
         view.translatesAutoresizingMaskIntoConstraints = false
         return view
     }()
-
+    
     private let selectedTagsLabel: UILabel = {
         let label = UILabel()
         label.text = "Tags:"
@@ -142,13 +143,14 @@ class AddQuestionViewController: UIViewController, UICollectionViewDelegate, UIC
         return collectionView
     }()
     
-
-
+    
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
+        setupAddQuestionButton()
         cancelButton.addTarget(self, action: #selector(cancelButtonTapped), for: .touchUpInside)
-
+        
     }
     
     private func setupUI() {
@@ -164,7 +166,7 @@ class AddQuestionViewController: UIViewController, UICollectionViewDelegate, UIC
         
         selectedTagsContainerView.addSubview(selectedTagsLabel)
         selectedTagsContainerView.addSubview(selectedTagsCollectionView)
-
+        
         subjectView.addSubview(subjectStackView)
         subjectView.addSubview(subjectBorderBottom)
         subjectStackView.addArrangedSubview(subjectLabel)
@@ -214,7 +216,7 @@ class AddQuestionViewController: UIViewController, UICollectionViewDelegate, UIC
             tagBottomBorder.trailingAnchor.constraint(equalTo: subjectView.trailingAnchor),
             tagBottomBorder.topAnchor.constraint(equalTo: selectedTagsContainerView.bottomAnchor),
             tagBottomBorder.heightAnchor.constraint(equalToConstant: 1),
-
+            
             
             selectedTagsContainerView.topAnchor.constraint(equalTo: subjectView.bottomAnchor, constant: 16),
             selectedTagsContainerView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
@@ -229,7 +231,7 @@ class AddQuestionViewController: UIViewController, UICollectionViewDelegate, UIC
             selectedTagsCollectionView.trailingAnchor.constraint(equalTo: selectedTagsContainerView.trailingAnchor),
             
             collectionView.topAnchor.constraint(equalTo: tagBottomBorder.bottomAnchor, constant: 16),
-
+            
             questionTextField.topAnchor.constraint(equalTo: collectionView.bottomAnchor, constant: 16),
             questionTextField.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             questionTextField.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
@@ -244,9 +246,29 @@ class AddQuestionViewController: UIViewController, UICollectionViewDelegate, UIC
     @objc private func cancelButtonTapped() {
         dismiss(animated: true, completion: nil)
     }
-
+    
+    
+    
+    private func setupAddQuestionButton() {
+        let addButton = UIButton(type: .system)
+        addButton.setImage(UIImage(systemName: "paperplane"), for: .normal)
+        addButton.tintColor = UIColor(red: 144/255, green: 144/255, blue: 147/255, alpha: 1.0)
+        addButton.frame = CGRect(x: 0, y: 0, width: 44, height: 44)
+        addButton.addTarget(self, action: #selector(addQuestionTapped), for: .touchUpInside)
+        
+        questionTextField.rightView = addButton
+        questionTextField.rightViewMode = .always
+    }
+    
+    @objc private func addQuestionTapped() {
+        guard let title = subjectTextField.text, !title.isEmpty,
+              let question = questionTextField.text, !question.isEmpty else {
+            return
+        }
+        delegate?.didAddQuestion(title: title, question: question, tags: selectedTags)
+        dismiss(animated: true, completion: nil)
+    }
 }
-
 extension AddQuestionViewController {
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         if collectionView == self.collectionView {
@@ -296,4 +318,7 @@ extension AddQuestionViewController {
             selectedTagsCollectionView.reloadData()
         }
     }
+}
+protocol AddQuestionDelegate: AnyObject {
+    func didAddQuestion(title: String, question: String, tags: [String])
 }

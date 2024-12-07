@@ -31,6 +31,6 @@ struct Tokens: Codable {
 }
 
 struct AuthModel: Codable {
-    var email: String
+    var username: String
     var password: String
 }

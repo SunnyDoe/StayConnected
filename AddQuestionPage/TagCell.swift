@@ -8,7 +8,7 @@
 import UIKit
 
 class TagCell: UICollectionViewCell {
-    private let tagButton: UIButton = {
+    let tagButton: UIButton = {
         let button = UIButton()
         button.titleLabel?.font = .systemFont(ofSize: 14)
         button.setTitleColor(UIColor(red: 79/255, green: 70/255, blue: 229/255, alpha: 1.0), for: .normal)

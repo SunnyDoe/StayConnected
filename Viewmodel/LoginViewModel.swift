@@ -10,20 +10,20 @@ import Foundation
 class LoginViewModel {
     private let networkManager = NetworkManager()
     
-    var email: String = ""
+    var username: String = ""
     var password: String = ""
     
     var onStatusUpdate: ((String, Bool) -> Void)?
     var onCompletion: (() -> Void)?
     
     func signIn() {
-        guard isValidEmail(), isPasswordValid() else {
+        guard isValidUsername(), isPasswordValid() else {
             onStatusUpdate?("Invalid email or password", false)
             return
         }
         
-        let authModel = AuthModel(email: email, password: password)
-        
+        let authModel = AuthModel(username: username, password: password)
+
         networkManager.loginUser(authModel) { [weak self] result in
             DispatchQueue.main.async {
                 switch result {
@@ -42,8 +42,8 @@ class LoginViewModel {
         Keychain.shared.save("refreshToken", value: tokens.refresh)
     }
     
-    func isValidEmail() -> Bool {
-        return email.contains("@")
+    func isValidUsername() -> Bool {
+        return username.count >= 1
     }
     
     func isPasswordValid() -> Bool {

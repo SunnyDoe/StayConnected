@@ -7,13 +7,31 @@
 
 import Foundation
 
-enum QuestionType {
+enum QuestionType: String, Codable {
     case general
     case personal
 }
 
-struct Question {
-    let id: UUID
-    let title: String
-    let type: QuestionType
+struct QuestionListResponse: Codable {
+    let questions: [Question]
+}
+
+struct Question: Codable {
+    let id: Int?
+    let user: String
+    let subject: String
+    let body: String
+    let tagDetails: [Tag]
+    let likeCount: Int
+    let numberOfAnswers: Int
+    let createdAt: String
+}
+
+struct Tag: Codable {
+    let name: String
+}
+
+
+struct AddQuestionResponse: Codable {
+    let status: String
 }

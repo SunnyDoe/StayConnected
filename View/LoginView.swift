@@ -50,8 +50,11 @@ class LoginView: UIViewController {
         
         viewModel.onCompletion = { [weak self] in
             print("Login successful, navigating to home.")
-            let homeViewController = SignUpView()
-            self?.navigationController?.pushViewController(homeViewController, animated: true)
+            guard let self = self else { return }
+            
+            let tabBarController = TabBarViewController()
+            self.view.window?.rootViewController = tabBarController
+            self.view.window?.makeKeyAndVisible()
         }
     }
     
@@ -66,7 +69,7 @@ class LoginView: UIViewController {
         emailContainer.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(emailContainer)
         
-        emailLabel.text = "Email"
+        emailLabel.text = "Username"
         emailLabel.textColor = .systemGray3
         emailLabel.font = .systemFont(ofSize: 12)
         emailLabel.translatesAutoresizingMaskIntoConstraints = false
@@ -75,7 +78,7 @@ class LoginView: UIViewController {
         emailField.placeholder = "Username"
         emailField.borderStyle = .roundedRect
         emailField.translatesAutoresizingMaskIntoConstraints = false
-        emailField.addTarget(self, action: #selector(emailChanged), for: .editingChanged)
+        emailField.addTarget(self, action: #selector(usernameChanged), for: .editingChanged)
         emailContainer.addSubview(emailField)
         
         loginButton.setTitle("Log In", for: .normal)
@@ -187,8 +190,8 @@ class LoginView: UIViewController {
         ])
     }
     
-    @objc private func emailChanged(_ textField: UITextField) {
-        viewModel.email = textField.text ?? ""
+    @objc private func usernameChanged(_ textField: UITextField) {
+        viewModel.username = textField.text ?? ""
     }
     
     @objc private func passwordChanged(_ textField: UITextField) {
