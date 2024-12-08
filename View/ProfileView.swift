@@ -7,7 +7,7 @@
 
 import UIKit
 
-class ProfileViewController: UIViewController {
+class ProfileView: UIViewController {
     private let viewModel = ProfileViewModel()
     
     private let profileTitle: UILabel = {

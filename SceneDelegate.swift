@@ -31,7 +31,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     }
     
     func transitionToLoginView() {
-        let loginViewController = TabBarViewController()
+        let loginViewController = LoginView()
         let navigationController = UINavigationController(rootViewController: loginViewController)
         window?.rootViewController = navigationController
     }

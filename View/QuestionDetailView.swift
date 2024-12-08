@@ -1,7 +1,7 @@
 import UIKit
 import Combine
 
-class QuestionDetailViewController: UIViewController {
+class QuestionDetailView: UIViewController {
     var question: Question?
     var viewModel: QuestionDetailViewModel?
     private let networkManager = NetworkManager()
@@ -242,9 +242,8 @@ class QuestionDetailViewController: UIViewController {
         present(alert, animated: true, completion: nil)
     }
     
-    // When setting up the view controller, ensure the ViewModel is created
-    static func create(with question: Question) -> QuestionDetailViewController {
-        let viewController = QuestionDetailViewController()
+    static func create(with question: Question) -> QuestionDetailView {
+        let viewController = QuestionDetailView()
         viewController.question = question
         viewController.viewModel = QuestionDetailViewModel(question: question)
         return viewController

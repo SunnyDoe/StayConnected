@@ -14,7 +14,7 @@ class TabBarViewController: UITabBarController {
         super.viewDidLoad()
         
         
-        let homeVC = HomePageViewController()
+        let homeVC = HomePageView()
         homeVC.view.backgroundColor = .white
         homeVC.tabBarItem = UITabBarItem(title: "Home", image: UIImage(named: "Home"), tag: 0)
 
@@ -22,7 +22,7 @@ class TabBarViewController: UITabBarController {
         leaderboardVC.view.backgroundColor = .white
         leaderboardVC.tabBarItem = UITabBarItem(title: "Leaderboard", image: UIImage(named: "Leaderboard"), tag: 1)
         
-        let profileVC = UIViewController()
+        let profileVC = ProfileView()
         profileVC.view.backgroundColor = .white
         profileVC.tabBarItem = UITabBarItem(title: "Profile", image: UIImage(named: "Profile"), tag: 2)
         

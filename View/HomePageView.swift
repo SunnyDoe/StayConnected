@@ -1,7 +1,7 @@
 import UIKit
 import Combine
 
-class HomePageViewController: UIViewController {
+class HomePageView: UIViewController {
     
     private let questionLbl: UILabel = {
         let label = UILabel()
@@ -160,7 +160,7 @@ class HomePageViewController: UIViewController {
     }
     
     @objc private func addButtonTapped() {
-        let addQuestionVC = AddQuestionViewController()
+        let addQuestionVC = AddQuestionView()
         addQuestionVC.delegate = self
         present(addQuestionVC, animated: true)
     }
@@ -236,7 +236,7 @@ class HomePageViewController: UIViewController {
     }
 }
 
-extension HomePageViewController: AddQuestionDelegate {
+extension HomePageView: AddQuestionDelegate {
     func didAddQuestion(title: String, question: String, tags: [String]) {
         let newQuestion = Question(id: 0, user: "User", subject: title, body: question, tagDetails: tags.map { Tag(name: $0) }, likeCount: 0, numberOfAnswers: 0, createdAt: "")
         
@@ -248,7 +248,7 @@ extension HomePageViewController: AddQuestionDelegate {
         }
     }
 }
-extension HomePageViewController: UITableViewDataSource, UITableViewDelegate {
+extension HomePageView: UITableViewDataSource, UITableViewDelegate {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return viewModel.questions.count
     }
@@ -267,7 +267,7 @@ extension HomePageViewController: UITableViewDataSource, UITableViewDelegate {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         let selectedQuestion = viewModel.questions[indexPath.row]
         
-        let detailsVC = QuestionDetailViewController()
+        let detailsVC = QuestionDetailView()
         detailsVC.question = selectedQuestion
         
         present(detailsVC, animated: true)

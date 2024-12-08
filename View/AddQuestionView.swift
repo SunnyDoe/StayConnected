@@ -1,6 +1,6 @@
 import UIKit
 
-class AddQuestionViewController: UIViewController, UICollectionViewDelegate, UICollectionViewDataSource {
+class AddQuestionView: UIViewController, UICollectionViewDelegate, UICollectionViewDataSource {
     
     private var tags: [String] = ["Frontend", "iOS", "SwiftUI", "SwiftUI", "iOS","Frontend", "iOS", "SwiftUI", "SwiftUI", "iOS"]
     private var selectedTags: [String] = []
@@ -270,7 +270,7 @@ class AddQuestionViewController: UIViewController, UICollectionViewDelegate, UIC
         dismiss(animated: true, completion: nil)
     }
 }
-extension AddQuestionViewController {
+extension AddQuestionView {
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         if collectionView == self.collectionView {
             guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "TagCell", for: indexPath) as? TagCell else {

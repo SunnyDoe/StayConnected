@@ -29,10 +29,9 @@ enum NetworkError: Error {
 }
 
 class NetworkManager {
-    private let baseURL = URL(string: "https://nunu29.pythonanywhere.com/questions/questions_answers_create/")!
     
     func registerUser(_ user: User, completion: @escaping (Result<SignUpResponse, Error>) -> Void) {
-        guard let url = URL(string: "https://nunu29.pythonanywhere.com/users/register/") else { return }
+        guard let url = URL(string: "http://164.90.230.102/api/users/register/") else { return }
         
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
@@ -66,9 +65,8 @@ class NetworkManager {
         }.resume()
     }
     
-    
     func loginUser(_ authModel: AuthModel, completion: @escaping (Result<SignUpResponse, Error>) -> Void) {
-        guard let url = URL(string: "https://nunu29.pythonanywhere.com/users/login/") else { return }
+        guard let url = URL(string: "http://164.90.230.102/api/users/login/") else { return }
         
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
@@ -103,7 +101,7 @@ class NetworkManager {
     }
     
     func fetchQuestions(completion: @escaping (Result<Data, Error>) -> Void) {
-        guard let url = URL(string: "https://nunu29.pythonanywhere.com/questions/questions_list/") else {
+        guard let url = URL(string: "http://164.90.230.102/api/questions/") else {
             completion(.failure(NSError(domain: "Invalid URL", code: 0, userInfo: nil)))
             return
         }
@@ -132,7 +130,7 @@ class NetworkManager {
     }
     
     func sendQuestion(_ questionText: String, completion: @escaping (Result<Void, Error>) -> Void) {
-        guard let url = URL(string: "https://nunu29.pythonanywhere.com/questions/questions_answers_create/") else {
+        guard let url = URL(string: "http://164.90.230.102/api/questions/") else {
             print("Invalid URL")
             completion(.failure(NetworkError.invalidURL))
             return
@@ -226,7 +224,7 @@ class NetworkManager {
     }
 
     func sendAnswer(questionId: Int, answerText: String, completion: @escaping (Result<Answer, Error>) -> Void) {
-        guard let url = URL(string: "https://nunu29.pythonanywhere.com/questions/questions_answers_create/") else {
+        guard let url = URL(string: "http://164.90.230.102/api/questions/{question_id}/answers/") else {
             completion(.failure(NSError(domain: "Invalid URL", code: 0, userInfo: nil)))
             return
         }
@@ -304,7 +302,7 @@ class NetworkManager {
     }
 
     func fetchSpecificQuestionAnswers(questionId: Int, completion: @escaping (Result<[Answer], Error>) -> Void) {
-        guard let url = URL(string: "https://nunu29.pythonanywhere.com/questions/questions_retrieve/") else {
+        guard let url = URL(string: "http://164.90.230.102/api/questions/{question_id}/answers/") else {
             completion(.failure(NSError(domain: "Invalid URL", code: 0, userInfo: nil)))
             return
         }

@@ -11,7 +11,7 @@ import UIKit
 class ProfileViewModel {
     let name = "Shawn Howard"
     let email = "shawn_howard@gmail.com"
-    let profileImage = UIImage(named: "ProfileImage")
+    let profileImage = UIImage(named: "profileImg")
     
     func logOut() {
     }
