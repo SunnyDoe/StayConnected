@@ -1,7 +1,7 @@
 import UIKit
 import Combine
 
-class QuestionDetailView: UIViewController {
+class QuestionDetailViewController: UIViewController {
     var question: Question?
     var viewModel: QuestionDetailViewModel?
     private let networkManager = NetworkManager()
@@ -104,9 +104,10 @@ class QuestionDetailView: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
-        
+        setupViewModel()
+        setupSendButton()
     }
-    
+
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         
@@ -184,6 +185,7 @@ class QuestionDetailView: UIViewController {
         guard let viewModel = viewModel else { return }
         
         viewModel.$answers
+            .receive(on: DispatchQueue.main)
             .sink { [weak self] answers in
                 self?.updateAnswers(answers)
             }
@@ -205,7 +207,7 @@ class QuestionDetailView: UIViewController {
         
         viewModel.fetchAnswers()
     }
-    
+
     private func setupSendButton() {
         sendButton.addTarget(self, action: #selector(handleSendButtonTapped), for: .touchUpInside)
     }
@@ -220,7 +222,6 @@ class QuestionDetailView: UIViewController {
             DispatchQueue.main.async {
                 if success {
                     self?.questionTextField.text = ""
-                    self?.showAlert(title: "Success", message: "Your answer was sent successfully.")
                 } else {
                     self?.showAlert(title: "Error", message: "Failed to send your answer. Please try again.")
                 }
@@ -235,15 +236,15 @@ class QuestionDetailView: UIViewController {
             answerLabel.text = "No answers available."
         }
     }
-    
+
     private func showAlert(title: String, message: String) {
         let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "OK", style: .default, handler: nil))
         present(alert, animated: true, completion: nil)
     }
     
-    static func create(with question: Question) -> QuestionDetailView {
-        let viewController = QuestionDetailView()
+    static func create(with question: Question) -> QuestionDetailViewController {
+        let viewController = QuestionDetailViewController()
         viewController.question = question
         viewController.viewModel = QuestionDetailViewModel(question: question)
         return viewController
