@@ -7,6 +7,7 @@
 
 import Foundation
 import Combine
+
 enum NetworkError: Error {
     case invalidURL
     case requestFailed(statusCode: Int)
@@ -132,6 +133,7 @@ class NetworkManager {
     
     func sendQuestion(_ questionText: String, completion: @escaping (Result<Void, Error>) -> Void) {
         guard let url = URL(string: "https://nunu29.pythonanywhere.com/questions/questions_answers_create/") else {
+            print("Invalid URL")
             completion(.failure(NetworkError.invalidURL))
             return
         }
@@ -145,29 +147,87 @@ class NetworkManager {
         do {
             let jsonData = try JSONSerialization.data(withJSONObject: parameters, options: [])
             request.httpBody = jsonData
+            print("Request body: \(String(data: jsonData, encoding: .utf8) ?? "Failed to encode request body")")
         } catch {
+            print("Error serializing JSON: \(error)")
             completion(.failure(error))
             return
         }
 
-        URLSession.shared.dataTask(with: request) { _, response, error in
+        print("Sending request to URL: \(url)")
+        URLSession.shared.dataTask(with: request) { data, response, error in
             if let error = error {
-                completion(.failure(error))
+                print("Error occurred: \(error)")
+                return completion(.failure(error))
+            }
+
+            guard let httpResponse = response as? HTTPURLResponse else {
+                print("Invalid response: \(String(describing: response))")
+                completion(.failure(NetworkError.requestFailed(statusCode: -1)))
                 return
             }
 
-            guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 201 else {
-                completion(.failure(NetworkError.requestFailed(statusCode: (response as? HTTPURLResponse)?.statusCode ?? -1)))
-                return
-            }
+            print("HTTP response status code: \(httpResponse.statusCode)")
 
-            completion(.success(()))
+            switch httpResponse.statusCode {
+            case 200...299:
+                print("Request successful. Status code: \(httpResponse.statusCode)")
+                completion(.success(()))
+            case 400:
+                print("Client error - Bad Request (400). Check request payload and parameters.")
+                if let responseData = data, let responseString = String(data: responseData, encoding: .utf8) {
+                    print("Response data: \(responseString)")
+                }
+                completion(.failure(NetworkError.requestFailed(statusCode: httpResponse.statusCode)))
+            case 401:
+                print("Client error - Unauthorized (401). Check authentication credentials.")
+                if let responseData = data, let responseString = String(data: responseData, encoding: .utf8) {
+                    print("Response data: \(responseString)")
+                }
+                completion(.failure(NetworkError.requestFailed(statusCode: httpResponse.statusCode)))
+            case 403:
+                print("Client error - Forbidden (403). Access is denied.")
+                if let responseData = data, let responseString = String(data: responseData, encoding: .utf8) {
+                    print("Response data: \(responseString)")
+                }
+                completion(.failure(NetworkError.requestFailed(statusCode: httpResponse.statusCode)))
+            case 404:
+                print("Client error - Not Found (404). The resource could not be found.")
+                if let responseData = data, let responseString = String(data: responseData, encoding: .utf8) {
+                    print("Response data: \(responseString)")
+                }
+                completion(.failure(NetworkError.requestFailed(statusCode: httpResponse.statusCode)))
+            case 500:
+                print("Server error - Internal Server Error (500). The server encountered an error.")
+                if let responseData = data, let responseString = String(data: responseData, encoding: .utf8) {
+                    print("Response data: \(responseString)")
+                }
+                completion(.failure(NetworkError.requestFailed(statusCode: httpResponse.statusCode)))
+            case 502:
+                print("Server error - Bad Gateway (502). The server received an invalid response from the upstream server.")
+                if let responseData = data, let responseString = String(data: responseData, encoding: .utf8) {
+                    print("Response data: \(responseString)")
+                }
+                completion(.failure(NetworkError.requestFailed(statusCode: httpResponse.statusCode)))
+            case 503:
+                print("Server error - Service Unavailable (503). The server is currently unable to handle the request.")
+                if let responseData = data, let responseString = String(data: responseData, encoding: .utf8) {
+                    print("Response data: \(responseString)")
+                }
+                completion(.failure(NetworkError.requestFailed(statusCode: httpResponse.statusCode)))
+            default:
+                print("Unexpected status code: \(httpResponse.statusCode).")
+                if let responseData = data, let responseString = String(data: responseData, encoding: .utf8) {
+                    print("Response data: \(responseString)")
+                }
+                completion(.failure(NetworkError.requestFailed(statusCode: httpResponse.statusCode)))
+            }
         }.resume()
     }
 
-    func sendQuestion(questionText: String, completion: @escaping (Result<Void, Error>) -> Void) {
+    func sendAnswer(questionId: Int, answerText: String, completion: @escaping (Result<Answer, Error>) -> Void) {
         guard let url = URL(string: "https://nunu29.pythonanywhere.com/questions/questions_answers_create/") else {
-            completion(.failure(NetworkError.invalidURL))
+            completion(.failure(NSError(domain: "Invalid URL", code: 0, userInfo: nil)))
             return
         }
         
@@ -175,7 +235,10 @@ class NetworkManager {
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         
-        let parameters: [String: Any] = ["body": questionText]
+        let parameters: [String: Any] = [
+            "question": questionId,
+            "body": answerText
+        ]
         
         do {
             let jsonData = try JSONSerialization.data(withJSONObject: parameters, options: [])
@@ -185,18 +248,64 @@ class NetworkManager {
             return
         }
         
-        URLSession.shared.dataTask(with: request) { _, response, error in
+        URLSession.shared.dataTask(with: request) { data, response, error in
             if let error = error {
+                print("Request error: \(error)")
                 completion(.failure(error))
                 return
             }
-            completion(.success(()))
+            
+            guard let httpResponse = response as? HTTPURLResponse else {
+                print("Invalid response type")
+                completion(.failure(NSError(domain: "InvalidResponse", code: 0, userInfo: nil)))
+                return
+            }
+            
+            print("HTTP Status Code: \(httpResponse.statusCode)")
+            
+            if (200...299).contains(httpResponse.statusCode) {
+                guard let data = data else {
+                    completion(.failure(NSError(domain: "DataError", code: 0, userInfo: nil)))
+                    return
+                }
+                
+                do {
+                    let createdAnswer = try JSONDecoder().decode(Answer.self, from: data)
+                    completion(.success(createdAnswer))
+                } catch {
+                    print("Error decoding answer: \(error)")
+                    completion(.failure(error))
+                }
+            } else {
+                switch httpResponse.statusCode {
+                case 400:
+                    print("Bad Request (400): The server could not understand the request due to invalid syntax.")
+                case 401:
+                    print("Unauthorized (401): Authentication is required and has failed or has not been provided.")
+                case 403:
+                    print("Forbidden (403): The server understands the request but refuses to authorize it.")
+                case 404:
+                    print("Not Found (404): The server could not find the requested resource.")
+                case 500:
+                    print("Internal Server Error (500): The server has encountered a situation it doesn't know how to handle.")
+                case 503:
+                    print("Service Unavailable (503): The server is not ready to handle the request, possibly due to being overloaded or down for maintenance.")
+                default:
+                    print("HTTP Error (\(httpResponse.statusCode)): \(HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))")
+                }
+                
+                if let data = data, let errorString = String(data: data, encoding: .utf8) {
+                    print("Error response body: \(errorString)")
+                }
+                
+                completion(.failure(NSError(domain: "HTTPError", code: httpResponse.statusCode, userInfo: nil)))
+            }
         }.resume()
     }
 
-    func fetchAnswer(completion: @escaping (Result<String, Error>) -> Void) {
+    func fetchSpecificQuestionAnswers(questionId: Int, completion: @escaping (Result<[Answer], Error>) -> Void) {
         guard let url = URL(string: "https://nunu29.pythonanywhere.com/questions/questions_retrieve/") else {
-            completion(.failure(NetworkError.invalidURL))
+            completion(.failure(NSError(domain: "Invalid URL", code: 0, userInfo: nil)))
             return
         }
         
@@ -211,21 +320,23 @@ class NetworkManager {
             }
             
             guard let data = data else {
-                completion(.failure(NetworkError.unknownError))
+                completion(.failure(NSError(domain: "DataError", code: 0, userInfo: nil)))
                 return
             }
             
+            if let responseString = String(data: data, encoding: .utf8) {
+                print("Raw specific question answers response: \(responseString)")
+            }
+            
             do {
-                let responseDict = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any]
-                if let answer = responseDict?["answer"] as? String {
-                    completion(.success(answer))
-                } else {
-                    completion(.failure(NetworkError.decodingError))
-                }
+                let questionDetail = try JSONDecoder().decode(QuestionDetail.self, from: data)
+                completion(.success(questionDetail.answers))
             } catch {
+                print("Decoding error: \(error)")
                 completion(.failure(error))
             }
         }.resume()
     }
+
 
 }
