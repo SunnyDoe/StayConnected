@@ -94,7 +94,7 @@ class QuestionDetailViewController: UIViewController {
     
     private let sendButton: UIButton = {
         let button = UIButton(type: .system)
-        button.setImage(UIImage(named: "SendIcon"), for: .normal)
+        button.setImage(UIImage(named: "SendButton"), for: .normal)
         button.tintColor =  UIColor(red: 218/255, green: 218/255, blue: 218/255, alpha: 1.0)
         button.translatesAutoresizingMaskIntoConstraints = false
         
@@ -178,35 +178,75 @@ class QuestionDetailViewController: UIViewController {
         ])
         
     }
-    @objc private func sendQuestion() {
-        guard let questionText = questionTextField.text, !questionText.isEmpty else {
-            answerLabel.text = "Please enter a question."
+    
+    
+    private func setupViewModel() {
+        guard let viewModel = viewModel else { return }
+        
+        viewModel.$answers
+            .sink { [weak self] answers in
+                self?.updateAnswers(answers)
+            }
+            .store(in: &cancellables)
+        
+        viewModel.$isLoading
+            .sink { [weak self] isLoading in
+                print("Loading state: \(isLoading)")
+            }
+            .store(in: &cancellables)
+        
+        viewModel.$error
+            .sink { [weak self] error in
+                if let error = error {
+                    self?.showAlert(title: "Error", message: error.localizedDescription)
+                }
+            }
+            .store(in: &cancellables)
+        
+        viewModel.fetchAnswers()
+    }
+    
+    private func setupSendButton() {
+        sendButton.addTarget(self, action: #selector(handleSendButtonTapped), for: .touchUpInside)
+    }
+    
+    @objc private func handleSendButtonTapped() {
+        guard let text = questionTextField.text, !text.isEmpty else {
+            showAlert(title: "Error", message: "Please enter an answer.")
             return
         }
-        
-        networkManager.sendQuestion(questionText: questionText) { [weak self] result in
+
+        viewModel?.sendAnswer(text) { [weak self] success in
             DispatchQueue.main.async {
-                switch result {
-                case .success:
-                    self?.fetchAnswer()
-                case .failure(let error):
-                    self?.answerLabel.text = "Error: \(error.localizedDescription)"
+                if success {
+                    self?.questionTextField.text = ""
+                    self?.showAlert(title: "Success", message: "Your answer was sent successfully.")
+                } else {
+                    self?.showAlert(title: "Error", message: "Failed to send your answer. Please try again.")
                 }
             }
         }
     }
 
-    private func fetchAnswer() {
-        networkManager.fetchAnswer { [weak self] result in
-            DispatchQueue.main.async {
-                switch result {
-                case .success(let answer):
-                    self?.answerLabel.text = answer
-                case .failure(let error):
-                    self?.answerLabel.text = "Error: \(error.localizedDescription)"
-                }
-            }
+    func updateAnswers(_ answers: [Answer]) {
+        if let firstAnswer = answers.first {
+            answerLabel.text = firstAnswer.body
+        } else {
+            answerLabel.text = "No answers available."
         }
+    }
+    
+    private func showAlert(title: String, message: String) {
+        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "OK", style: .default, handler: nil))
+        present(alert, animated: true, completion: nil)
+    }
+    
+    // When setting up the view controller, ensure the ViewModel is created
+    static func create(with question: Question) -> QuestionDetailViewController {
+        let viewController = QuestionDetailViewController()
+        viewController.question = question
+        viewController.viewModel = QuestionDetailViewModel(question: question)
+        return viewController
     }
 }
-
